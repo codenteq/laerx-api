@@ -1,8 +1,8 @@
 {
-    "name": "laravel/laravel",
+    "name": "codenteq/laerx-api",
     "type": "project",
-    "description": "The Laravel Framework.",
-    "keywords": ["framework", "laravel"],
+    "description": "The Laerx API.",
+    "keywords": ["codenteq", "e-exam", "api"],
     "license": "MIT",
     "require": {
         "php": "^8.0.2",
