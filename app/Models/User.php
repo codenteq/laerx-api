@@ -4,13 +4,23 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
+
+    const Admin = 1;
+
+    const Manager = 2;
+
+    const Teacher = 3;
+
+    const Student = 4;
 
     /**
      * The attributes that are mass assignable.
@@ -18,9 +28,12 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'full_name',
+        'passport_id',
         'email',
+        'avatar',
         'password',
+        'role',
     ];
 
     /**
@@ -41,4 +54,12 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    /**
+     * @return HasOne
+     */
+    public function info(): HasOne
+    {
+        return $this->hasOne(UserInfo::class, 'user_id', 'id');
+    }
 }

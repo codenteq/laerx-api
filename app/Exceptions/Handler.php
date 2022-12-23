@@ -2,11 +2,21 @@
 
 namespace App\Exceptions;
 
+use App\Traits\ApiResponser;
+use Exception;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\Response;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
 class Handler extends ExceptionHandler
 {
+    use ApiResponser;
+
     /**
      * A list of exception types with their corresponding custom log levels.
      *
@@ -41,10 +51,36 @@ class Handler extends ExceptionHandler
      *
      * @return void
      */
-    public function register()
+    public function register(): void
     {
         $this->reportable(function (Throwable $e) {
             //
+        });
+
+        $this->renderable(function (Exception $exception, $request) {
+            if ($request->is('api/*')) {
+                switch ($exception) {
+                    case config('app.debug'):
+                        break;
+                    case $exception instanceof NotFoundHttpException:
+                        return $this->errorResponse(__('response.not_found'), Response::HTTP_NOT_FOUND);
+                        break;
+                    case $exception instanceof MethodNotAllowedHttpException:
+                        return $this->errorResponse(__('response.method_not_allowed'), Response::HTTP_METHOD_NOT_ALLOWED);
+                        break;
+                    case $exception instanceof HttpException:
+                        return $this->errorResponse($exception->getMessage(), $exception->getStatusCode());
+                        break;
+                    case $exception instanceof ValidationException:
+                        return $this->errorResponse($exception->validator->errors()->first(), Response::HTTP_UNPROCESSABLE_ENTITY);
+                        break;
+                    case $exception instanceof AuthenticationException:
+                        return $this->errorResponse(__('response.unauthorized'), Response::HTTP_UNAUTHORIZED);
+                        break;
+                    default:
+                        return $this->errorResponse(__('response.internal_server_error'), Response::HTTP_INTERNAL_SERVER_ERROR);
+                }
+            }
         });
     }
 }
